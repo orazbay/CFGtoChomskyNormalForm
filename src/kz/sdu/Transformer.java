@@ -1,6 +1,5 @@
 package kz.sdu;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Transformer {
@@ -109,6 +108,7 @@ public class Transformer {
 
     //step3
     public void removeUnitRules(){
+        Collections.reverse(variables);
         for (Variable variable:variables) {
             for (int unitRuleIndex:variable.hasUnitVariable()){
                 Variable variable1=getVariableFromList(variable.endpoints.get(unitRuleIndex).get(0).getValue());
@@ -120,10 +120,13 @@ public class Transformer {
             }
             variable.endpoints.removeIf(a-> a.size()==1&&a.get(0) instanceof Variable);
         }
+        Collections.reverse(variables);
     }
 
     //Step 4: Eliminate all rules having more than two symbols on the right-hand side
     public void removeMoreThanTwoSymbols(){
+        boolean repeat=false;//
+
         ArrayList<Variable> newVariables=new ArrayList<>();
         for(Variable variable:variables){
             ArrayList<ArrayList<Symbol>> arrayToSubstitute=new ArrayList<>();
@@ -132,24 +135,35 @@ public class Transformer {
             for (ArrayList<Symbol> symbols:variable.endpoints){
                 ArrayList<Symbol> ToSubstitute=new ArrayList<>();
                 if (symbols.size()>2){
-
+                    if (symbols.size()>4){
+                        repeat=true;
+                    }
                     arrayToDelete.add(symbols);
 
-                    System.out.println("next Endpoint+"+symbols.toString());
                     int startSublist=0;
                     int endSublist=2;
+
                     while (true){
                         ArrayList<Symbol> endPointOfNewVariable= new ArrayList<>(symbols.subList(startSublist,endSublist));
-                        System.out.println("new endpoint+"+endPointOfNewVariable.toString());
+                        boolean add=true;
                         Variable newVariable=new Variable("new");
                         newVariable.endpoints.add(endPointOfNewVariable);
-                        ToSubstitute.add(newVariable);
+                        for (Variable newVariableI:newVariables){
+                            if (newVariableI.toStringEndpoints().get(0).equals(newVariable.toStringEndpoints().get(0))){
+                                newVariable=newVariableI;
+                                add=false;
+                                break;
+                            }
 
-                        newVariables.add(newVariable);
+                        }
+                        ToSubstitute.add(newVariable);
+                        if (add) {
+                            newVariables.add(newVariable);
+                        }
 
                         startSublist=endSublist;
                         endSublist=endSublist+2;
-                        if (symbols.size()-endSublist<=2){
+                        if (symbols.size()-startSublist<2){
                             break;
                         }
                     }
@@ -169,6 +183,9 @@ public class Transformer {
         for (Variable newVariable:newVariables){
             newVariable.setValue(getNextAvailableVariable());
             variables.add(newVariable);
+        }
+        if (repeat){
+            removeMoreThanTwoSymbols();
         }
     }
 

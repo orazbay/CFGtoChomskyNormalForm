@@ -20,3 +20,14 @@ A->A|aAb|BBC|$
 B->BBC|b|$
 C->cCc|c|$
 end
+
+A->aAb|BC|$
+B->BCB|b|$
+C->cCc|c|$
+end
+
+A->aabb|$
+end
+
+A->aabbc|$
+end
